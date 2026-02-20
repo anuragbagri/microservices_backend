@@ -17,4 +17,4 @@ router.post("/logout" ,authenticate,  authController.logOutHandler);
 router.post("me" ,authenticate,  authController.getMeHandler)
 
 
-export default authRoutes = router;
+export default authRoutes = router;   
