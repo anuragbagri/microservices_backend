@@ -12,6 +12,5 @@ export async function errorHandler(err, req, res, next){
       
       // unknown error 
       return res.status(500).json(new ApiErrorResponse("Internal server error" , 500))
-
 }
 

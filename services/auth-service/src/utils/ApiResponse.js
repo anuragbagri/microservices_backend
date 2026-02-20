@@ -6,9 +6,6 @@ class ApiSuccessResponse{
         this.data=data;
     }
 
-    apiErrorResponse(){
-
-    }
 }
 
 
