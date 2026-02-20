@@ -1,4 +1,4 @@
-import { ApiErrorResponse } from "../utils/ApiResponse";
+import { ApiErrorResponse } from "../utils/ApiResponse.js";
 
 export async function errorHandler(err, req, res, next){
       // this milldeware should be registered last after all routes

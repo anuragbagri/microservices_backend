@@ -1,6 +1,6 @@
 import { createUser, deleteToken, findRefreshToken, findUserByEmail, findUserById } from "../repo/auth.repo.js";
 import bcrypt from "bcrypt";
-import AppError from "../utils/AppError";
+import AppError from "../utils/AppError.js";
 import { generateTokenPair } from "./token.service.js";
 import jwt from "jsonwebtoken";
 
@@ -166,3 +166,7 @@ const getMe = async(userId) => {
         throw new AppError("Internal server Error" , 500);
     }
 }
+
+
+export { registerUser , login , refresh ,getMe , logOut }
+

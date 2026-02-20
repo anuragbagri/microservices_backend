@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
-import { createRefreshToken } from "../repo/auth.repo";
-import AppError from "../utils/AppError";
+import { createRefreshToken } from "../repo/auth.repo.js";
+import AppError from "../utils/AppError.js";
 
 /**
  * @description function to generate accesstoken and refresh token 
