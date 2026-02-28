@@ -1,6 +1,6 @@
 class AppError extends Error{
     constructor(message , statuscode , errors =[]){
-        this.message=message;
+        super(message);
         this.statuscode=statuscode;
         this.errors=errors;
         this.isOperational=true; // marks it a known handled error

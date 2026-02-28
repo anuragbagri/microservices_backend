@@ -10,4 +10,4 @@ services:
       - pgdata:/var/lib/postgresql
 
 volumes:
- pgdata:
+ pgdata
