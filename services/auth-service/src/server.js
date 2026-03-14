@@ -1,8 +1,19 @@
+import dotenv from "dotenv";
 import express from "express";
+import cors from "cors";
+import authRoutes from "./routes/auth.routes.js";
+import { errorHandler } from "./middleware/errorHandler.js";
 
-export const app = express();
+dotenv.config();
 
-const port = process.env.NODE_PORT || 6100;
-app.listen(port , () => {
-    console.log(`server started running on the server ${port} and db running on the port ${5432}`)
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+app.use("/auth", authRoutes);
+app.use(errorHandler);
+
+const port = Number(process.env.PORT) || 6101;
+app.listen(port, () => {
+  console.log(`Auth service started on port ${port}`);
 });

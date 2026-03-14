@@ -2,7 +2,7 @@ import axios from "axios";
 import AppError from "../utils/AppError";
 /**
  * @description functions to build the authURL
- * @param {string , object} *
+ * @param {string?, object?} *
  * @returns {string}
  */
 
@@ -33,7 +33,11 @@ const buildGithubAuthUrl = (state) => {
     return `${baseUrl}?${authUrlParams}`;
 }
 
-
+/**
+ * @description functions to exchangecodes and get tokens
+ * @param {string?, object?} code
+ * @returns {<Promise{object}>} tokens  
+ */
 const exchangeGoogleCode = async(code) => {
     try {
         const makeCall = await axios.post('https://oauth2.googleapis.com/token',
@@ -106,8 +110,11 @@ const exchangeGithubCode = async(code) => {
        throw new AppError("Internal server error ", 500);
     }
 }
-
-
+/**
+ * @description functions to get user data 
+ * @param {string} accessToken 
+ * @returns {<Promise{object}>} userdata
+ */
 const getGoogleUserInfo = async(accessToken) => {
      try {
         const makeCall = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", 

@@ -12,17 +12,11 @@ async function authenticate(req, res, next){
         const verifyToken = jwt.verify(token , jwtSecret , {
             algorithms : ["HS256"]
         });
-        if(!verifyToken){
-            throw new AppError("Invalid token or expired" , 401);
-        }
-        req.user = {id : verifyToken.Id , email : verifyToken.email}
+        req.user = {id : verifyToken.id , email : verifyToken.email}
         next()
     }
     catch(err){
-        if(err instanceof AppError){
-            throw err
-        }
-        throw new AppError("Internal server Error" , 500);
+        next(err instanceof AppError ? err : new AppError("Internal server Error" , 500));
     }
 }
 

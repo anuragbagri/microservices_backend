@@ -53,10 +53,10 @@ async function loginUserHandler(req, res){
 async function refreshTokenHandler(req, res){
     try  {
         const tokenData = req.headers.authorization;
+        const token = tokenData?.split(" ")[1];
         if(!token || !token.startsWith("Bearer")){
             throw new AppError("Please authenticate", 401);
         }
-        const token = tokenData.split(" ")[1];
         const getNewToken = await refresh(token);
         return res.status(200).json(new ApiSuccessResponse("success" , 200 ,getNewToken));
     }
@@ -76,10 +76,10 @@ async function refreshTokenHandler(req, res){
 async function logOutHandler(req, res){
     try  {
         const tokenData = req.headers.authorization;
+        const token = tokenData?.split(" ")[1];
         if(!token || !token.startsWith("Bearer")){
             throw new AppError("Please authenticate", 401);
         }
-        const token = tokenData.split(" ")[1];
         const getNewToken = await logOut(token);
         return res.status(200).json( new ApiSuccessResponse("success" , 200 , getNewToken))
     }
@@ -95,7 +95,7 @@ async function getMeHandler(req, res){
     try {
         const userId = req.user.id;
         const getUserFromDb = await getMe(userId);
-        if(!get){
+        if(!getUserFromDb){
             throw new AppError("no user with this id ", 500);
         }
 
@@ -110,4 +110,3 @@ async function getMeHandler(req, res){
 }
 
 export { getMeHandler , logOutHandler , registerHandler , loginUserHandler , refreshTokenHandler }
-

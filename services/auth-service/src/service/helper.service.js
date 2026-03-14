@@ -91,17 +91,17 @@ const login = async(email , password) => {
 const refresh = async(refreshToken) => {
     try {
         const RefreshToken = await findRefreshToken(refreshToken);
-        if(!findRefreshToken){
+        if(!RefreshToken){
             throw new AppError("Invalid refresh token", 401);
         }
 
-        if(RefreshToken.expiresAt > new Date()){
+        if(RefreshToken.expiresAt < new Date()){
             throw new AppError("Refresh token exipred" , 401);
         }
         const refreshTokenSecret = process.env.JWT_REFRESH_SECRET || "";
         const payload = jwt.verify(refreshToken, refreshTokenSecret);
         const deleteOldRefreshToken = await deleteToken(refreshToken);
-        const newTokenPair = await generateTokenPair(payload.Id, payload.email);
+        const newTokenPair = await generateTokenPair(payload.id, payload.email);
 
         return {
             accessToken : newTokenPair.accessToken,
@@ -125,7 +125,7 @@ const refresh = async(refreshToken) => {
 const logOut = async(refreshToken) => {
       try {
          const getRefreshToken = await findRefreshToken(refreshToken);
-         if(!refreshToken){
+         if(!getRefreshToken){
             throw new AppError("Token not Found" , 404);
          }
          const deleteRefreshToken = await deleteToken(refreshToken);
@@ -169,4 +169,3 @@ const getMe = async(userId) => {
 
 
 export { registerUser , login , refresh ,getMe , logOut }
-

@@ -4,13 +4,13 @@ import AppError from "../utils/AppError.js";
 
 /**
  * @description function to generate accesstoken and refresh token 
- * @param {string} Id 
+ * @param {string} id 
  * @param {string} email 
  * @returns {Promise<{accessToken : string , refresh : string}> }
  */
-async function generateTokenPair(Id , email){
+async function generateTokenPair(id , email){
     const accessToken = jwt.sign({
-        Id,
+        id,
         email
     },
     process.env.JWT_SECRET,
@@ -22,7 +22,7 @@ async function generateTokenPair(Id , email){
    let refreshTokenExpiresIn = process.env.JWT_REFRESH_EXPIRES_IN || "7d";
 
    const refreshToken = jwt.sign({
-    Id,
+    id,
     email
    },
    process.env.JWT_REFRESH_SECRET,
@@ -31,9 +31,12 @@ async function generateTokenPair(Id , email){
      expiresIn : refreshTokenExpiresIn
    });
 
+   const decodeRefreshToken = jwt.decode(refreshToken);
+   const refreshTokenExpiryDate = new Date(decodeRefreshToken.exp * 1000);
+
 
    // stores refreshtoken in db
-   const storeRefreshToken = await createRefreshToken(Id , refreshToken ,refreshTokenExpiresIn); 
+   const storeRefreshToken = await createRefreshToken(id , refreshToken ,refreshTokenExpiryDate); 
 
    return {
     accessToken,
@@ -66,4 +69,3 @@ async function verifyAccessToken(token){
 }
 
 export {verifyAccessToken , generateTokenPair};
-

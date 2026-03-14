@@ -1,7 +1,6 @@
-import { PrismaClient } from "../generated/prisma";
+import { PrismaClient } from "../generated/prisma/index.js";
 
 export const prisma = new PrismaClient({
-    log : process.env.NODE_ENV
+    log : ["query", "error"]
 });
-
 

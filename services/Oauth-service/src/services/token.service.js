@@ -6,7 +6,7 @@ import AppError from "../utils/AppError";
  * @description creates token pair
  * @param {string} userId
  * @param {string} email
- * @returns {<Promise{accessToken : string , refreshToken : string}>}
+ * @returns {Promise<{accessToken: string, refreshToken: string}>}
  */
 const generateTokenPair = async (userId, email) => {
   try {
