@@ -1,0 +1,8 @@
+services:
+  api-gateway:
+    build: .
+    ports:
+      - "6100:6100"
+    env_file:
+      - .env
+    command: ["npm", "run", "build"]
