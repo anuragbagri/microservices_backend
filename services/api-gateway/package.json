@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "webpack",
-    "start": "node src/server.js"
+    "dev": "node src/server.js"
   },
   "keywords": [],
   "author": "",
