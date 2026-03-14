@@ -54,7 +54,7 @@ async function refreshTokenHandler(req, res){
     try  {
         const tokenData = req.headers.authorization;
         const token = tokenData?.split(" ")[1];
-        if(!token || !token.startsWith("Bearer")){
+        if(!tokenData || !tokenData.startsWith("Bearer") || !token){
             throw new AppError("Please authenticate", 401);
         }
         const getNewToken = await refresh(token);
@@ -77,7 +77,7 @@ async function logOutHandler(req, res){
     try  {
         const tokenData = req.headers.authorization;
         const token = tokenData?.split(" ")[1];
-        if(!token || !token.startsWith("Bearer")){
+        if(!tokenData || !tokenData.startsWith("Bearer") || !token){
             throw new AppError("Please authenticate", 401);
         }
         const getNewToken = await logOut(token);

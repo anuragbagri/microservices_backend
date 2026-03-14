@@ -38,6 +38,7 @@ model OAuthToken {
   createdAt DateTime @default(now())
   expiresAt DateTime?
   user OAuthUser @relation(fields: [userId] , references: [id])
+  @@unique([userId, provider])
 
 }
 
@@ -55,4 +56,3 @@ enum providerEnum {
   google
   github
 }
-

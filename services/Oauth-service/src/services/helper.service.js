@@ -1,45 +1,32 @@
-import { findRefreshToken } from "../../../auth-service/src/repo/auth.repo";
 import {
-  createOAuthToken,
-  deleteRefreshToken,
   deleteRefreshToken,
   findOAuthUserById,
-  findOAuthUserByProvider,
   findRefreshToken,
-  updateOAuthToken,
+  upsertOAuthToken,
   upsertOAuthUser,
-} from "../repos/oauth.repo";
-import AppError from "../utils/AppError";
+} from "../repos/oauth.repo.js";
+import AppError from "../utils/AppError.js";
 import {
   exchangeGithubCode,
   exchangeGoogleCode,
   getGithubUserInfo,
   getGoogleUserInfo,
-} from "./oauth.service";
-import { generateTokenPair, verifyRefreshToken } from "./token.service";
-
-/**
- * @description exchanges code for access_token
- * @param {string} code
- * @returns {object}
- */
+} from "./oauth.service.js";
+import { generateTokenPair, verifyRefreshToken } from "./token.service.js";
 
 async function handleGoogleCallback(code) {
   try {
-    const { accessToken, refreshToken, expiresIn } =
-      await exchangeGoogleCode(code);
+    const { accessToken, refreshToken, expiresIn } = await exchangeGoogleCode(code);
 
     if (!accessToken) {
       throw new AppError("Failed to get access token from Google", 400);
     }
 
     const { sub, email, name, picture } = await getGoogleUserInfo(accessToken);
-
     if (!sub || !email) {
       throw new AppError("Invalid Google user data", 400);
     }
 
-    //upsert oauthuser
     const user = await upsertOAuthUser({
       email,
       name,
@@ -48,36 +35,21 @@ async function handleGoogleCallback(code) {
       providerUserId: sub,
     });
 
-    const expiresAt = new Date(Date.now() + expiresIn * 1000);
-    const doesOAuthTokenExistsForProvider = await findOAuthUserByProvider(
+    const expiresAt = expiresIn ? new Date(Date.now() + expiresIn * 1000) : null;
+    await upsertOAuthToken(
+      user.id,
       "google",
-      user.id,
-    );
-    if (doesOAuthTokenExistsForProvider) {
-      await updateOAuthToken(
-        user.id,
-        "google",
-        accessToken,
-        refreshToken,
-        expiresAt,
-      );
-    } else {
-      await createOAuthToken(
-        user.id,
-        "google",
-        accessToken,
-        refreshToken,
-        expiresAt,
-      );
-    }
-    const { access_token, refresh_token } = await generateTokenPair(
-      user.id,
-      email,
+      accessToken,
+      refreshToken,
+      expiresAt,
     );
 
+    const { accessToken: appAccessToken, refreshToken: appRefreshToken } =
+      await generateTokenPair(user.id, email);
+
     return {
-      access_token,
-      refresh_token,
+      accessToken: appAccessToken,
+      refreshToken: appRefreshToken,
       user: {
         id: user.id,
         email: user.email,
@@ -95,56 +67,39 @@ async function handleGoogleCallback(code) {
 
 async function handleGithubCallback(code) {
   try {
-    const { accessToken, refreshToken, expiresIn } =
-      await exchangeGithubCode(code);
+    const { accessToken, refreshToken, expiresIn } = await exchangeGithubCode(code);
     if (!accessToken) {
-      throw new AppError("failed to get access token from github", 400);
+      throw new AppError("Failed to get access token from github", 400);
     }
 
     const { id, email, name, picture } = await getGithubUserInfo(accessToken);
-
     if (!id || !email) {
       throw new AppError("Invalid github user", 400);
     }
 
-    // upsert oauth user
     const user = await upsertOAuthUser({
-      email: email,
-      name: name,
+      email,
+      name,
       avatarUrl: picture,
       provider: "github",
       providerUserId: String(id),
     });
-    const expiresAt = new Date(Date.now() + expiresIn * 1000);
-    const doesOAuthTokenExistsForProvider = await findOAuthUserByProvider(
+
+    const expiresAt = expiresIn ? new Date(Date.now() + expiresIn * 1000) : null;
+    await upsertOAuthToken(
+      user.id,
       "github",
-      user.id,
-    );
-    if (doesOAuthTokenExistsForProvider) {
-      await updateOAuthToken(
-        user.id,
-        "github",
-        accessToken,
-        refreshToken,
-        expiresAt,
-      );
-    } else {
-      await createOAuthToken(
-        user.id,
-        "github",
-        accessToken,
-        refreshToken,
-        expiresAt,
-      );
-    }
-    const { access_token, refresh_token } = await generateTokenPair(
-      user.id,
-      email,
+      accessToken,
+      refreshToken,
+      expiresAt,
     );
 
+    const { accessToken: appAccessToken, refreshToken: appRefreshToken } =
+      await generateTokenPair(user.id, email);
+
     return {
-      access_token,
-      refresh_token,
+      accessToken: appAccessToken,
+      refreshToken: appRefreshToken,
       user: {
         id: user.id,
         email: user.email,
@@ -156,37 +111,36 @@ async function handleGithubCallback(code) {
     if (err instanceof AppError) {
       throw err;
     }
-    throw new AppError("Google authentication failed", 500);
+    throw new AppError("Github authentication failed", 500);
   }
 }
 
-/**
- * @description utility functions for routes
- * @param {string} refreshToken
- * @returns {object}
- */
 async function refreshUserToken(refreshToken) {
   try {
     const doesTokenExistInDb = await findRefreshToken(refreshToken);
     if (!doesTokenExistInDb) {
-      throw new AppError("token does not exist in db", 400);
+      throw new AppError("Token does not exist in db", 400);
     }
 
-    // token expired
     if (doesTokenExistInDb.expiresAt < new Date()) {
-      throw new AppError("refresh token expired", 401);
+      throw new AppError("Refresh token expired", 401);
     }
 
     const payload = verifyRefreshToken(refreshToken);
-    deleteRefreshToken(refreshToken);
-    const { access_token, refresh_token } = await generateTokenPair(
+    const user = await findOAuthUserById(payload.userId);
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+
+    await deleteRefreshToken(refreshToken);
+    const { accessToken, refreshToken: newRefreshToken } = await generateTokenPair(
       payload.userId,
-      payload.email,
+      user.email,
     );
 
     return {
-      access_token,
-      refresh_token,
+      accessToken,
+      refreshToken: newRefreshToken,
     };
   } catch (err) {
     if (err instanceof AppError) {
@@ -198,13 +152,13 @@ async function refreshUserToken(refreshToken) {
 
 async function logoutUser(refreshToken) {
   try {
-    const findRefreshToken = await findRefreshToken(refreshToken);
-    if (!findRefreshToken) {
-      throw new AppError("token does not exist", 400);
+    const existingRefreshToken = await findRefreshToken(refreshToken);
+    if (!existingRefreshToken) {
+      throw new AppError("Token does not exist", 400);
     }
-    const deleteRefresh = await deleteRefreshToken(refreshToken);
+    await deleteRefreshToken(refreshToken);
     return {
-      message: "logged out successfully",
+      message: "Logged out successfully",
     };
   } catch (err) {
     if (err instanceof AppError) {
@@ -218,9 +172,9 @@ async function getMe(userId) {
   try {
     const findUserById = await findOAuthUserById(userId);
     if (!findUserById) {
-      throw new AppError("user not found", 400);
+      throw new AppError("User not found", 400);
     }
-    const { id, email, name, avatarUrl, provider } = findOAuthUserById;
+    const { id, email, name, avatarUrl, provider } = findUserById;
     return {
       id,
       email,

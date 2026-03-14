@@ -1,4 +1,4 @@
-import prisma from "../model/db";
+import prisma from "../model/db.js";
 
 /**
  * @description utility functions to do crud in db
@@ -7,7 +7,7 @@ import prisma from "../model/db";
  */
 
 async function findOAuthUserByProvider(provider, providerUserId) {
-  const findUser = await prisma.OAuthUser.findUnique({
+  const findUser = await prisma.oAuthUser.findUnique({
     where: {
       provider_providerUserId: {
         provider: provider,
@@ -28,7 +28,7 @@ async function findOAuthUserById(id) {
 }
 
 async function upsertOAuthUser(data) {
-  const user = await prisma.OAuthUser.upsert({
+  const user = await prisma.oAuthUser.upsert({
     where: {
       provider_providerUserId: {
         provider: data.provider,
@@ -41,7 +41,7 @@ async function upsertOAuthUser(data) {
     },
     create: {
       email: data.email,
-      name: data.email,
+      name: data.name,
       avatarUrl: data.avatarUrl,
       provider: data.provider,
       providerUserId: data.providerUserId,
@@ -57,7 +57,7 @@ async function createOAuthToken(
   refreshToken,
   expiresAt,
 ) {
-  const createUser = await prisma.OAuthToken.create({
+  const createUser = await prisma.oAuthToken.create({
     data: {
       userId: userId,
       provider: provider,
@@ -69,6 +69,18 @@ async function createOAuthToken(
   return createUser;
 }
 
+async function findOAuthTokenByUserIdAndProvider(userId, provider) {
+  const token = await prisma.oAuthToken.findUnique({
+    where: {
+      userId_provider: {
+        userId,
+        provider,
+      },
+    },
+  });
+  return token;
+}
+
 async function updateOAuthToken(
   userId,
   provider,
@@ -76,7 +88,7 @@ async function updateOAuthToken(
   refreshToken,
   expiresAt,
 ) {
-  const updateToken = await prisma.OAuthToken.updateMany({
+  const updateToken = await prisma.oAuthToken.updateMany({
     where: {
       userId,
       provider,
@@ -90,8 +102,38 @@ async function updateOAuthToken(
   return updateToken;
 }
 
+async function upsertOAuthToken(
+  userId,
+  provider,
+  accessToken,
+  refreshToken,
+  expiresAt,
+) {
+  const token = await prisma.oAuthToken.upsert({
+    where: {
+      userId_provider: {
+        userId,
+        provider,
+      },
+    },
+    update: {
+      accessToken,
+      refreshToken,
+      expiresAt,
+    },
+    create: {
+      userId,
+      provider,
+      accessToken,
+      refreshToken,
+      expiresAt,
+    },
+  });
+  return token;
+}
+
 async function createRefreshToken(userId, token, expiresAt) {
-  const createRefreshToken = await prisma.OAuthRefreshToken.create({
+  const createRefreshToken = await prisma.oAuthRefreshToken.create({
     data: {
       userId: userId,
       token: token,
@@ -102,7 +144,7 @@ async function createRefreshToken(userId, token, expiresAt) {
 }
 
 async function findRefreshToken(token) {
-  const findRefreshToken = await prisma.OAuthRefreshToken.findUnique({
+  const findRefreshToken = await prisma.oAuthRefreshToken.findUnique({
     where: {
       token,
     },
@@ -111,7 +153,7 @@ async function findRefreshToken(token) {
 }
 
 async function deleteRefreshToken(token) {
-  const deleteToken = await prisma.OAuthRefreshToken.delete({
+  const deleteToken = await prisma.oAuthRefreshToken.delete({
     where: {
       token,
     },
@@ -121,7 +163,7 @@ async function deleteRefreshToken(token) {
 
 async function deleteALLUserRefreshTokens(userId) {
   // logout from all devices
-  const deleteFromAllDevices = await prisma.OAuthRefreshToken.deleteMany({
+  const deleteFromAllDevices = await prisma.oAuthRefreshToken.deleteMany({
     where: {
       userId,
     },
@@ -132,9 +174,11 @@ async function deleteALLUserRefreshTokens(userId) {
 export {
   findOAuthUserById,
   findOAuthUserByProvider,
+  findOAuthTokenByUserIdAndProvider,
   upsertOAuthUser,
   createOAuthToken,
   updateOAuthToken,
+  upsertOAuthToken,
   createRefreshToken,
   findRefreshToken,
   deleteRefreshToken,
