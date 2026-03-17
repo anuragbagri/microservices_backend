@@ -1,4 +1,4 @@
-import { ApiErrorResponse } from "../../../auth-service/src/utils/ApiResponse";
+import { ApiErrorResponse } from "../../../auth-service/src/utils/ApiResponse.js";
 
 function errorHandlerMiddleware(err, req, res, next) {
   const errorStatusCode = err.statusCode ?? 500;

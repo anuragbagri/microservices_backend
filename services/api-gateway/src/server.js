@@ -3,9 +3,9 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
-import router from "./routes/routes";
-import { errorHandlerMiddleware } from "./middlewares/errorHandler";
-import { globalLimiter } from "./middlewares/ratelimiter";
+import router from "./routes/routes.js";
+import { errorHandlerMiddleware } from "./middlewares/errorHandler.js";
+import { globalLimiter } from "./middlewares/ratelimiter.js";
 
 dotenv.config();
 const app = express();

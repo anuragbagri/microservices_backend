@@ -1,34 +1,40 @@
-import ApiError from "../utils/ApiError";
+import ApiError from "../utils/ApiError.js";
 import jwt from "jsonwebtoken";
 
 function authenticateMiddleware(req, res, next) {
   try {
     const authorizationToken = req.headers.authorization;
     if (!authorizationToken || !authorizationToken.startsWith("Bearer")) {
-      next(new ApiError("Unauthorized", 401));
+      return next(new ApiError(401, "Unauthorized"));
     }
+
     const token = authorizationToken.split(" ")[1];
+    if (!token) {
+      return next(new ApiError(401, "Unauthorized"));
+    }
+
     const jwt_secret = process.env.JWT_SECRET ?? "";
     try {
       const payload = jwt.verify(token, jwt_secret, { algorithms: ["HS256"] });
       if (!payload) {
-        throw new ApiError(400, "not authorized");
+        return next(new ApiError(401, "Invalid or expired token"));
       }
+
       req.user = { id: payload.id, email: payload.email };
       req.headers["x-user-id"] = payload.id;
       req.headers["x-user-email"] = payload.email;
-      next();
+      return next();
     } catch (err) {
       if (err instanceof ApiError) {
-        next(err);
+        return next(err);
       }
-      next(new ApiError(400, "jsontokenexpired"));
+      return next(new ApiError(401, "Invalid or expired token"));
     }
   } catch (err) {
     if (err instanceof ApiError) {
-      next(ApiError);
+      return next(err);
     }
-    next(new ApiError(401, "Invalid or expired token"));
+    return next(err);
   }
 }
 

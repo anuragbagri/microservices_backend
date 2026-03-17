@@ -1,22 +1,18 @@
 import { Router } from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
-import authenticateMiddleware from "../middlewares/authenticate";
+import authenticateMiddleware from "../middlewares/authenticate.js";
 
 const router = Router();
 
 const authProxy = createProxyMiddleware({
   target: "http://localhost:6101", // for dev env ... use localhost only
-  changeOrigin: "true", // modify the origin header
+  changeOrigin: true, // modify the origin header
   pathRewrite: {
     "^/api/auth": "/auth",
   },
   on: {
-    proxyReq: {
-      /* change the request headers */
-    },
-    proxyRes: {
-      /* change the response headers */
-    },
+    proxyReq: () => {},
+    proxyRes: () => {},
   },
   onError: (err, req, res) => {
     res.status(503).json({
@@ -35,12 +31,8 @@ const oAuthproxy = createProxyMiddleware({
     "^/api/oauth": "/oauth",
   },
   on: {
-    proxyReq: {
-      /* change the request headers */
-    },
-    proxyRes: {
-      /* change the response headers */
-    },
+    proxyReq: () => {},
+    proxyRes: () => {},
   },
   onError: (err, req, res) => {
     res.status(503).json({
@@ -59,12 +51,8 @@ const userProxy = createProxyMiddleware({
     "^/api/user": "/user",
   },
   on: {
-    proxyReq: {
-      /* request headers */
-    },
-    proxyRes: {
-      /* response headers catch */
-    },
+    proxyReq: () => {},
+    proxyRes: () => {},
   },
   onError: (err, req, res) => {
     res.status(503).json({
@@ -79,6 +67,9 @@ const userProxy = createProxyMiddleware({
 // bind ALL THE routes here
 router.use("/api/auth", authProxy);
 router.use("/api/oauth", oAuthproxy);
-router.use("/api/user", authenticateMiddleware, userProxy);
+router.get("/api/user/users/me", authenticateMiddleware, userProxy);
+router.put("/api/user/users/me", authenticateMiddleware, userProxy);
+router.delete("/api/user/users/me", authenticateMiddleware, userProxy);
+router.get("/api/user/users/:id", userProxy);
 
 export default router;
