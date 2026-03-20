@@ -18,9 +18,9 @@ app.use(globalLimiter);
 app.use(router);
 app.use(errorHandlerMiddleware);
 
-const port = Number(process.env.PORT) ?? 6100;
+const port = Number(process.env.PORT) || 8080;
 app.listen(port, () => {
-  console.log("api gateway running on the port 6100");
+  console.log(`api gateway running on the port ${port}`);
   console.log("auth service running on the port 6101");
   console.log("oauth service running on the port 6102");
   console.log("user service running on the port 6103");

@@ -1,0 +1,12 @@
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: mysecretpassword
+    ports:
+      - "5436:5432"
+    volumes:
+      - notes_service_pgdata:/var/lib/postgresql/data
+
+volumes:
+  notes_service_pgdata:

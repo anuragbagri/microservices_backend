@@ -16,4 +16,13 @@ class ApiFailResponse {
   }
 }
 
-export { ApiFailResponse, ApiSuccessResponse };
+class ApiErrorResponse {
+  constructor(message, statusCode = 500, errors = []) {
+    this.success = false;
+    this.statusCode = statusCode;
+    this.message = message;
+    this.errors = errors;
+  }
+}
+
+export { ApiErrorResponse, ApiFailResponse, ApiSuccessResponse };

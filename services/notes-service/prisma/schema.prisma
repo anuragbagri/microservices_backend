@@ -1,0 +1,32 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Note {
+  id         String    @id @default(uuid())
+  userId     String    @map("user_id")
+  title      String
+  content    String?
+  isPinned   Boolean   @default(false) @map("is_pinned")
+  isArchived Boolean   @default(false) @map("is_archived")
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  noteTags   NoteTag[]
+
+  @@index([userId])
+  @@map("note")
+}
+
+model NoteTag {
+  noteId String @map("note_id")
+  tagId  String @map("tag_id")
+  note   Note   @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@id([noteId, tagId])
+  @@map("note_tag")
+}

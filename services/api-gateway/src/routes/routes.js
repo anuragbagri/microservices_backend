@@ -51,7 +51,14 @@ const userProxy = createProxyMiddleware({
     "^/api/user": "/user",
   },
   on: {
-    proxyReq: () => {},
+    proxyReq: (proxyReq, req) => {
+      if (req.user?.id) {
+        proxyReq.setHeader("x-user-id", String(req.user.id));
+      }
+      if (req.user?.email) {
+        proxyReq.setHeader("x-user-email", String(req.user.email));
+      }
+    },
     proxyRes: () => {},
   },
   onError: (err, req, res) => {
@@ -64,6 +71,33 @@ const userProxy = createProxyMiddleware({
   },
 });
 
+const notesProxy = createProxyMiddleware({
+  target: "http://localhost:6104",
+  changeOrigin: true,
+  pathRewrite: {
+    "^/api/notes": "/notes",
+  },
+  on: {
+    proxyReq: (proxyReq, req) => {
+      if (req.user?.id) {
+        proxyReq.setHeader("x-user-id", String(req.user.id));
+      }
+      if (req.user?.email) {
+        proxyReq.setHeader("x-user-email", String(req.user.email));
+      }
+    },
+    proxyRes: () => {},
+  },
+  onError: (err, req, res) => {
+    res.status(503).json({
+      success: false,
+      statusCode: 503,
+      message: "Notes service unavailable",
+      errors: [],
+    });
+  },
+});
+
 // bind ALL THE routes here
 router.use("/api/auth", authProxy);
 router.use("/api/oauth", oAuthproxy);
@@ -71,5 +105,12 @@ router.get("/api/user/users/me", authenticateMiddleware, userProxy);
 router.put("/api/user/users/me", authenticateMiddleware, userProxy);
 router.delete("/api/user/users/me", authenticateMiddleware, userProxy);
 router.get("/api/user/users/:id", userProxy);
+router.get("/api/notes", authenticateMiddleware, notesProxy);
+router.post("/api/notes", authenticateMiddleware, notesProxy);
+router.get("/api/notes/:id", authenticateMiddleware, notesProxy);
+router.put("/api/notes/:id", authenticateMiddleware, notesProxy);
+router.delete("/api/notes/:id", authenticateMiddleware, notesProxy);
+router.post("/api/notes/:id/tags", authenticateMiddleware, notesProxy);
+router.delete("/api/notes/:id/tags/:tagId", authenticateMiddleware, notesProxy);
 
 export default router;

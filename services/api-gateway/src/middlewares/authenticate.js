@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 function authenticateMiddleware(req, res, next) {
   try {
     const authorizationToken = req.headers.authorization;
-    if (!authorizationToken || !authorizationToken.startsWith("Bearer")) {
+    if (!authorizationToken || !authorizationToken.startsWith("Bearer ")) {
       return next(new ApiError(401, "Unauthorized"));
     }
 
